@@ -1,10 +1,11 @@
 import { Outlet } from 'react-router-dom'
+import Navbar from '../components/Navbar'
 
 function MainLayout() {
   return (
     <div className="layout">
       <header className="layout-header">
-        <h1>Social Media Platform</h1>
+        <Navbar />
       </header>
 
       <main className="layout-main">
