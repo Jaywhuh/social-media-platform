@@ -77,30 +77,21 @@ function RegisterPage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: replace this mock with a real API call:
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(dataToSend)
-      // })
+      const response = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dataToSend),
+      });
 
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const data = await response.json();
 
-      // Mock user — later this comes from the API response
-      const mockUserData = {
-        id: 'user_new',
-        username: dataToSend.username,
-        email: dataToSend.email
+      if (!response.ok) {
+        throw new Error(data.message || "Registration failed");
       }
 
-      login(mockUserData)
-
-      // TODO: redirect to home or login after success
-      // navigate('/login')
+      login(data.user, data.token);
     } catch (error) {
-      console.error("Registration failed:", error);
-      setErrors({ general: "Something went wrong. Please try again." });
+      setErrors({ general: error.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -176,7 +167,6 @@ function RegisterPage() {
           <p className="login-link">
             Already have an account? <a href="/login">Log in here</a>
           </p>
-
         </form>
       </div>
     </div>

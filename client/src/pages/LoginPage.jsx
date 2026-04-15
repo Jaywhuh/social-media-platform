@@ -1,90 +1,82 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useAuth } from '../hooks/AuthContext'
-import InputField from '../components/InputField'
-import '../styles/RegisterPage.css'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/AuthContext";
+import InputField from "../components/InputField";
+import "../styles/RegisterPage.css";
 
 function LoginPage() {
-
-  const { login } = useAuth()
+  const { login } = useAuth();
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  })
+    email: "",
+    password: "",
+  });
 
-  const [errors, setErrors] = useState({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleChange(e) {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
+      [name]: value,
+    }));
   }
 
   function validate() {
-    const newErrors = {}
+    const newErrors = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required'
-    } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address'
+      newErrors.email = "Email is required";
+    } else if (
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email)
+    ) {
+      newErrors.email = "Please enter a valid email address";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required'
+      newErrors.password = "Password is required";
     }
 
-    return newErrors
+    return newErrors;
   }
 
   async function handleSubmit(e) {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (isSubmitting) return
+    if (isSubmitting) return;
 
-    const validationErrors = validate()
-    setErrors(validationErrors)
-    if (Object.keys(validationErrors).length > 0) return
+    const validationErrors = validate();
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
-      // TODO Week 2: replace with real API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // })
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
 
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      // Mock user data — in Week 2 this comes from the API response
-      
-      const mockUserData = {
-        id: 'user1',
-        username: formData.email.split('@')[0],
-        email: formData.email
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
       }
 
-      login(mockUserData)
-
-      // TODO Week 2: save token and redirect
-      // navigate('/')
+      login(data.user, data.token)
 
     } catch (error) {
-      console.error('Login failed:', error)
-      setErrors({ general: 'Invalid email or password. Please try again.' })
+      setErrors({ general: error.message });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
   return (
     <div className="register-page">
       <div className="register-container">
-
         <div className="register-brand">SocialApp</div>
         <h1>Welcome Back</h1>
         <p className="register-subtitle">Log in to your account</p>
@@ -92,7 +84,6 @@ function LoginPage() {
         <hr className="register-divider" />
 
         <form className="register-form" onSubmit={handleSubmit} noValidate>
-
           {errors.general && (
             <span className="error-message">{errors.general}</span>
           )}
@@ -124,17 +115,16 @@ function LoginPage() {
             className="register-button"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Logging in...' : 'Log In'}
+            {isSubmitting ? "Logging in..." : "Log In"}
           </button>
 
           <p className="login-link">
             Don't have an account? <Link to="/register">Register here</Link>
           </p>
-
         </form>
       </div>
     </div>
-  )
+  );
 }
 
-export default LoginPage
+export default LoginPage;
