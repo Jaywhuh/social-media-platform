@@ -6,6 +6,7 @@ import {
   updatePost,
   deletePost
 } from '../data/posts.js'
+import { protect } from '../middleware/auth.js'
 
 const router = Router()
 
@@ -16,13 +17,15 @@ router.get('/', (req, res) => {
 })
 
 // POST /api/posts — create a post
-router.post('/', (req, res, next) => {
+router.post('/', protect, (req, res, next) => {
   try {
-    const { content, authorId, authorUsername } = req.body
+    const { content } = req.body
+    const authorId = req.user.id
+    const authorUsername = req.user.username
 
-    if (!content || !authorId || !authorUsername) {
+    if (!content) {
       res.status(400)
-      throw new Error('content, authorId, and authorUsername are required')
+      throw new Error('content is required')
     }
 
     if (content.trim().length === 0) {
@@ -64,7 +67,7 @@ router.get('/:id', (req, res, next) => {
 })
 
 // PUT /api/posts/:id — update a post
-router.put('/:id', (req, res, next) => {
+router.put('/:id', protect, (req, res, next) => {
   try {
     const { content } = req.body
 
@@ -86,7 +89,7 @@ router.put('/:id', (req, res, next) => {
 })
 
 // DELETE /api/posts/:id — delete a post
-router.delete('/:id', (req, res, next) => {
+router.delete('/:id', protect, (req, res, next) => {
   try {
     const deleted = deletePost(req.params.id)
     if (!deleted) {
