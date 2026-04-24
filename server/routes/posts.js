@@ -1,105 +1,104 @@
-import { Router } from 'express'
+import { Router } from 'express';
 import {
   getAllPosts,
   findPostById,
   createPost,
   updatePost,
-  deletePost
-} from '../data/posts.js'
-import { protect } from '../middleware/auth.js'
+  deletePost,
+} from '../data/posts.js';
+import { protect } from '../middleware/auth.js';
 
-const router = Router()
+const router = Router();
 
 // GET /api/posts — fetch all posts
 router.get('/', (req, res) => {
-  const posts = getAllPosts()
-  res.status(200).json(posts)
-})
+  const posts = getAllPosts();
+  res.status(200).json(posts);
+});
 
 // POST /api/posts — create a post
 router.post('/', protect, (req, res, next) => {
   try {
-    const { content } = req.body
-    const authorId = req.user.id
-    const authorUsername = req.user.username
+    const { content } = req.body;
+    const authorId = req.user.id;
+    const authorUsername = req.user.username;
 
     if (!content) {
-      res.status(400)
-      throw new Error('content is required')
+      res.status(400);
+      throw new Error('content is required');
     }
 
     if (content.trim().length === 0) {
-      res.status(400)
-      throw new Error('Post content cannot be empty')
+      res.status(400);
+      throw new Error('Post content cannot be empty');
     }
 
     const newPost = createPost({
       id: Date.now().toString(),
       author: {
         id: authorId,
-        username: authorUsername
+        username: authorUsername,
       },
       content: content.trim(),
       createdAt: new Date().toISOString(),
       likes: 0,
-      comments: []
-    })
+      comments: [],
+    });
 
-    res.status(201).json(newPost)
-
+    res.status(201).json(newPost);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // GET /api/posts/:id — fetch single post
 router.get('/:id', (req, res, next) => {
   try {
-    const post = findPostById(req.params.id)
+    const post = findPostById(req.params.id);
     if (!post) {
-      res.status(404)
-      throw new Error('Post not found')
+      res.status(404);
+      throw new Error('Post not found');
     }
-    res.status(200).json(post)
+    res.status(200).json(post);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // PUT /api/posts/:id — update a post
 router.put('/:id', protect, (req, res, next) => {
   try {
-    const { content } = req.body
+    const { content } = req.body;
 
     if (!content || content.trim().length === 0) {
-      res.status(400)
-      throw new Error('Content is required')
+      res.status(400);
+      throw new Error('Content is required');
     }
 
-    const updated = updatePost(req.params.id, { content: content.trim() })
+    const updated = updatePost(req.params.id, { content: content.trim() });
     if (!updated) {
-      res.status(404)
-      throw new Error('Post not found')
+      res.status(404);
+      throw new Error('Post not found');
     }
 
-    res.status(200).json(updated)
+    res.status(200).json(updated);
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
 // DELETE /api/posts/:id — delete a post
 router.delete('/:id', protect, (req, res, next) => {
   try {
-    const deleted = deletePost(req.params.id)
+    const deleted = deletePost(req.params.id);
     if (!deleted) {
-      res.status(404)
-      throw new Error('Post not found')
+      res.status(404);
+      throw new Error('Post not found');
     }
-    res.status(200).json({ message: 'Post deleted successfully' })
+    res.status(200).json({ message: 'Post deleted successfully' });
   } catch (err) {
-    next(err)
+    next(err);
   }
-})
+});
 
-export default router
+export default router;

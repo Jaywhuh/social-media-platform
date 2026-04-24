@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "./env.js";
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from './env.js';
 
 export function generateToken(user) {
   const payload = {
@@ -7,5 +7,5 @@ export function generateToken(user) {
     username: user.username,
   };
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 }

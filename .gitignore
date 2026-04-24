@@ -17,3 +17,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Editor settings
+.vscode/
+.prettierrc
