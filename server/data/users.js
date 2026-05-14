@@ -1,55 +1,44 @@
-// In-memory user storage — replaced by MongoDB later
-const users = [];
+import User from '../models/User.js';
 
-export function findUserByEmail(email) {
-  return users.find((user) => user.email === email);
+export async function findUserByEmail(email) {
+  return await User.findOne({ email });
 }
 
-export function findUserById(id) {
-  return users.find((user) => user.id === id);
+export async function findUserById(id) {
+  return await User.findById(id);
 }
 
-export function createUser(userData) {
-  const newUser = { bio: '', followers: [], following: [], ...userData };
-  users.push(newUser);
-  return newUser;
+export async function createUser(userData) {
+  const { username, email, password } = userData;
+  const user = new User({ username, email, password });
+  return await user.save();
 }
 
-export function getAllUsers() {
-  return users;
+export async function getAllUsers() {
+  return await User.find();
 }
 
-export function updateUser(id, updates) {
-  const index = users.findIndex((user) => user.id === id);
-  if (index === -1) return null;
-  users[index] = { ...users[index], ...updates };
-  return users[index];
+export async function updateUser(id, updates) {
+  return await User.findByIdAndUpdate(id, updates, {
+    new: true,
+    runValidators: true,
+  });
 }
 
-export function followUser(targetId, followerId) {
-  const target = findUserById(targetId);
-  const follower = findUserById(followerId);
-
-  if (!target || !follower) return null;
-
-  if (target.followers.includes(followerId)) {
-    return { alreadyFollowing: true };
-  }
-
-  target.followers.push(followerId);
-  follower.following.push(targetId);
-
-  return { target, follower };
+export async function followUser(targetId, followerId) {
+  await User.findByIdAndUpdate(targetId, {
+    $addToSet: { followers: followerId },
+  });
+  await User.findByIdAndUpdate(followerId, {
+    $addToSet: { following: targetId },
+  });
 }
 
-export function unfollowUser(targetId, followerId) {
-  const target = findUserById(targetId);
-  const follower = findUserById(followerId);
-
-  if (!target || !follower) return null;
-
-  target.followers = target.followers.filter((id) => id !== followerId);
-  follower.following = follower.following.filter((id) => id !== targetId);
-
-  return { target, follower };
+export async function unfollowUser(targetId, followerId) {
+  await User.findByIdAndUpdate(targetId, {
+    $pull: { followers: followerId },
+  });
+  await User.findByIdAndUpdate(followerId, {
+    $pull: { following: targetId },
+  });
 }

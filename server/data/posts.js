@@ -1,34 +1,34 @@
-// In-memory post storage — will be replaced by MongoDB
-const posts = [];
+import Post from '../models/Post.js';
 
-export function getAllPosts() {
-  return [...posts].reverse();
+export async function getAllPosts() {
+  return await Post.find()
+    .populate('author', 'username')
+    .sort({ createdAt: -1 });
 }
 
-export function findPostById(id) {
-  return posts.find((post) => post.id === id);
+export async function findPostById(id) {
+  return await Post.findById(id).populate('author', 'username');
 }
 
-export function createPost(postData) {
-  posts.push(postData);
-  return postData;
+export async function createPost(content, userId) {
+  const post = new Post({ content, author: userId });
+  return await post.save();
 }
 
-export function updatePost(id, updates) {
-  const index = posts.findIndex((post) => post.id === id);
-  if (index === -1) return null;
-  posts[index] = { ...posts[index], ...updates };
-  return posts[index];
+export async function updatePost(id, content) {
+  return await Post.findByIdAndUpdate(
+    id,
+    { content },
+    { new: true, runValidators: true }
+  );
 }
 
-export function deletePost(id) {
-  const index = posts.findIndex((post) => post.id === id);
-  if (index === -1) return null;
-  const deleted = posts[index];
-  posts.splice(index, 1);
-  return deleted;
+export async function deletePost(id) {
+  return await Post.findByIdAndDelete(id);
 }
 
-export function getPostsByUserId(userId) {
-  return posts.filter((post) => post.author.id === userId);
+export async function getPostsByUserId(userId) {
+  return await Post.find({ author: userId })
+    .populate('author', 'username')
+    .sort({ createdAt: -1 });
 }
