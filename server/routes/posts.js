@@ -10,18 +10,20 @@ import { protect } from '../middleware/auth.js';
 
 const router = Router();
 
-// GET /api/posts — fetch all posts
-router.get('/', (req, res) => {
-  const posts = getAllPosts();
-  res.status(200).json(posts);
+// GET /api/posts
+router.get('/', async (req, res, next) => {
+  try {
+    const posts = await getAllPosts();
+    res.status(200).json(posts);
+  } catch (err) {
+    next(err);
+  }
 });
 
-// POST /api/posts — create a post
-router.post('/', protect, (req, res, next) => {
+// POST /api/posts
+router.post('/', protect, async (req, res, next) => {
   try {
     const { content } = req.body;
-    const authorId = req.user.id;
-    const authorUsername = req.user.username;
 
     if (!content) {
       res.status(400);
@@ -33,28 +35,17 @@ router.post('/', protect, (req, res, next) => {
       throw new Error('Post content cannot be empty');
     }
 
-    const newPost = createPost({
-      id: Date.now().toString(),
-      author: {
-        id: authorId,
-        username: authorUsername,
-      },
-      content: content.trim(),
-      createdAt: new Date().toISOString(),
-      likes: 0,
-      comments: [],
-    });
-
+    const newPost = await createPost(content.trim(), req.user.id);
     res.status(201).json(newPost);
   } catch (err) {
     next(err);
   }
 });
 
-// GET /api/posts/:id — fetch single post
-router.get('/:id', (req, res, next) => {
+// GET /api/posts/:id
+router.get('/:id', async (req, res, next) => {
   try {
-    const post = findPostById(req.params.id);
+    const post = await findPostById(req.params.id);
     if (!post) {
       res.status(404);
       throw new Error('Post not found');
@@ -65,8 +56,8 @@ router.get('/:id', (req, res, next) => {
   }
 });
 
-// PUT /api/posts/:id — update a post
-router.put('/:id', protect, (req, res, next) => {
+// PUT /api/posts/:id
+router.put('/:id', protect, async (req, res, next) => {
   try {
     const { content } = req.body;
 
@@ -75,7 +66,7 @@ router.put('/:id', protect, (req, res, next) => {
       throw new Error('Content is required');
     }
 
-    const updated = updatePost(req.params.id, { content: content.trim() });
+    const updated = await updatePost(req.params.id, content.trim());
     if (!updated) {
       res.status(404);
       throw new Error('Post not found');
@@ -87,10 +78,10 @@ router.put('/:id', protect, (req, res, next) => {
   }
 });
 
-// DELETE /api/posts/:id — delete a post
-router.delete('/:id', protect, (req, res, next) => {
+// DELETE /api/posts/:id
+router.delete('/:id', protect, async (req, res, next) => {
   try {
-    const deleted = deletePost(req.params.id);
+    const deleted = await deletePost(req.params.id);
     if (!deleted) {
       res.status(404);
       throw new Error('Post not found');

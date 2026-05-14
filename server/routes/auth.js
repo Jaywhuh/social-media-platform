@@ -1,8 +1,6 @@
 import { Router } from 'express';
-import bcrypt from 'bcryptjs';
-import { SALT_ROUNDS } from '../config/bcrypt.js';
 import { generateToken } from '../config/jwt.js';
-import { findUserByEmail, createUser } from '../data/users.js';
+import User from '../models/User.js';
 
 const router = Router();
 
@@ -11,7 +9,6 @@ router.post('/register', async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
 
-    // --- Input Validation ---
     if (!username || !email || !password) {
       res.status(400);
       throw new Error('Username, email, and password are required');
@@ -33,22 +30,17 @@ router.post('/register', async (req, res, next) => {
       throw new Error('Password must be at least 6 characters');
     }
 
-    // Check if email is already registered
-    const existingUser = findUserByEmail(email);
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       res.status(409);
       throw new Error('An account with this email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-
-    // Save user to storage
-    const newUser = createUser({
-      id: Date.now().toString(),
+    const newUser = await new User({
       username: username.trim(),
       email,
-      password: hashedPassword,
-    });
+      password,
+    }).save();
 
     const token = generateToken(newUser);
 
@@ -56,7 +48,7 @@ router.post('/register', async (req, res, next) => {
       message: 'User registered successfully',
       token,
       user: {
-        id: newUser.id,
+        id: newUser._id,
         username: newUser.username,
         email: newUser.email,
       },
@@ -71,7 +63,6 @@ router.post('/login', async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    // --- Input Validation ---
     if (!email || !password) {
       res.status(400);
       throw new Error('Email and password are required');
@@ -88,15 +79,13 @@ router.post('/login', async (req, res, next) => {
       throw new Error('Password must be at least 6 characters');
     }
 
-    // Look up user by email
-    const user = findUserByEmail(email);
+    const user = await User.findOne({ email });
     if (!user) {
       res.status(401);
       throw new Error('Invalid email or password');
     }
 
-    // Compare submitted password against stored hash
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await user.matchPassword(password);
     if (!passwordMatch) {
       res.status(401);
       throw new Error('Invalid email or password');
@@ -108,7 +97,7 @@ router.post('/login', async (req, res, next) => {
       message: 'Login successful',
       token,
       user: {
-        id: user.id,
+        id: user._id,
         username: user.username,
         email: user.email,
       },
