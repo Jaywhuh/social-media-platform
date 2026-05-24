@@ -1,17 +1,30 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
-// Provider component wraps the app and shares state
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return null;
+    try {
+      return JSON.parse(storedUser);
+    } catch {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      return null;
+    }
+  });
+
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return !!localStorage.getItem('token') && !!localStorage.getItem('user');
+  });
 
   function login(userData, token) {
     setUser(userData);
     setIsLoggedIn(true);
     if (token) {
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
     }
   }
 
@@ -19,18 +32,17 @@ export function AuthProvider({ children }) {
     setUser(null);
     setIsLoggedIn(false);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
 
   return (
-    // The value prop is what gets shared with any component inside this Provider
     <AuthContext.Provider value={{ user, isLoggedIn, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-// Custom hook that lets any component read from the context cleanly
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
-  return useContext(AuthContext)
+  return useContext(AuthContext);
 }
