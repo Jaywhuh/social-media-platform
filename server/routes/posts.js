@@ -66,12 +66,18 @@ router.put('/:id', protect, async (req, res, next) => {
       throw new Error('Content is required');
     }
 
-    const updated = await updatePost(req.params.id, content.trim());
-    if (!updated) {
+    const post = await findPostById(req.params.id);
+    if (!post) {
       res.status(404);
       throw new Error('Post not found');
     }
 
+    if (post.author._id.toString() !== req.user.id) {
+      res.status(403);
+      throw new Error('Not authorized to edit this post');
+    }
+
+    const updated = await updatePost(req.params.id, content.trim());
     res.status(200).json(updated);
   } catch (err) {
     next(err);
@@ -81,11 +87,18 @@ router.put('/:id', protect, async (req, res, next) => {
 // DELETE /api/posts/:id
 router.delete('/:id', protect, async (req, res, next) => {
   try {
-    const deleted = await deletePost(req.params.id);
-    if (!deleted) {
+    const post = await findPostById(req.params.id);
+    if (!post) {
       res.status(404);
       throw new Error('Post not found');
     }
+
+    if (post.author._id.toString() !== req.user.id) {
+      res.status(403);
+      throw new Error('Not authorized to delete this post');
+    }
+
+    await deletePost(req.params.id);
     res.status(200).json({ message: 'Post deleted successfully' });
   } catch (err) {
     next(err);

@@ -13,7 +13,8 @@ const app = express();
 // Parse incoming JSON request bodies
 app.use(express.json());
 // Allow requests from the React frontend
-app.use(cors({ origin: 'http://localhost:5173' }));
+// app.use(cors({ origin: 'http://localhost:5173' }));
+app.use(cors({ origin: /^http:\/\/localhost:\d+$/ }));
 
 // --- Routes ---
 app.use('/api/auth', authRoutes);
