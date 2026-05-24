@@ -16,8 +16,8 @@ function ProfilePage() {
     async function fetchProfileData() {
       try {
         const [profileRes, postsRes] = await Promise.all([
-          fetch(`http://localhost:5000/api/users/${user.id}`),
-          fetch(`http://localhost:5000/api/users/${user.id}/posts`),
+          fetch(`/api/users/${user.id}`),
+          fetch(`/api/users/${user.id}/posts`),
         ]);
 
         const profileData = await profileRes.json();
@@ -78,7 +78,7 @@ function ProfilePage() {
       <div className="profile-posts-heading">Posts</div>
 
       {posts.length > 0 ? (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+        posts.map((post) => <PostCard key={post._id} post={post} />)
       ) : (
         <p>No posts yet.</p>
       )}

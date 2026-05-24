@@ -11,7 +11,7 @@ function HomePage() {
   useEffect(() => {
     async function fetchPosts() {
       try {
-        const response = await fetch("http://localhost:5000/api/posts");
+        const response = await fetch('/api/posts');
         const data = await response.json();
 
         if (!response.ok) {
@@ -48,7 +48,7 @@ function HomePage() {
       {posts.length === 0 ? (
         <p>No posts yet.</p>
       ) : (
-        posts.map((post) => <PostCard key={post.id} post={post} />)
+        posts.map((post) => <PostCard key={post._id} post={post} />)
       )}
     </div>
   );
