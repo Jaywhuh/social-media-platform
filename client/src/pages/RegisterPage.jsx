@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
 import "../styles/RegisterPage.css";
 import InputField from "../components/InputField";
 
 function RegisterPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     username: "",
@@ -15,7 +16,6 @@ function RegisterPage() {
   });
 
   const [errors, setErrors] = useState({});
-
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleChange(e) {
@@ -28,13 +28,13 @@ function RegisterPage() {
 
   function validate() {
     const newErrors = {};
-    // Username validation check
+
     if (!formData.username.trim()) {
       newErrors.username = "Username is required";
     } else if (formData.username.trim().length < 3) {
       newErrors.username = "Username must be at least 3 characters";
     }
-    // Email validation check
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (
@@ -42,13 +42,13 @@ function RegisterPage() {
     ) {
       newErrors.email = "Please enter a valid email address";
     }
-    // Password validation check
+
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
-    // Confirm password match check
+
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.confirmPassword !== formData.password) {
@@ -59,19 +59,14 @@ function RegisterPage() {
   }
 
   async function handleSubmit(e) {
-    // Stops browser from refreshing the page on form submit
     e.preventDefault();
 
     if (isSubmitting) return;
 
-    // Run validation first — stop if there are errors
     const validationErrors = validate();
     setErrors(validationErrors);
-
-    // If there are no keys, error object is empty, which means it is valid
     if (Object.keys(validationErrors).length > 0) return;
 
-    // confirmPassword: _confirmPassword is to let ESLint know I'm ignoring it intentionally
     const { confirmPassword: _confirmPassword, ...dataToSend } = formData;
 
     setIsSubmitting(true);
@@ -90,6 +85,7 @@ function RegisterPage() {
       }
 
       login(data.user, data.token);
+      navigate('/', { replace: true });
     } catch (error) {
       setErrors({ general: error.message });
     } finally {
@@ -107,7 +103,6 @@ function RegisterPage() {
         <hr className="register-divider" />
 
         <form className="register-form" onSubmit={handleSubmit} noValidate>
-          {/* General error — shown at the top of the form */}
           {errors.general && (
             <span className="error-message">{errors.general}</span>
           )}

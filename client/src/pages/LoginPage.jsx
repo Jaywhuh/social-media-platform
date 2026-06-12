@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext";
 import InputField from "../components/InputField";
 import "../styles/RegisterPage.css";
 
 function LoginPage() {
   const { login } = useAuth();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -65,8 +66,8 @@ function LoginPage() {
         throw new Error(data.message || 'Login failed');
       }
 
-      login(data.user, data.token)
-
+      login(data.user, data.token);
+      navigate('/', { replace: true });             
     } catch (error) {
       setErrors({ general: error.message });
     } finally {
